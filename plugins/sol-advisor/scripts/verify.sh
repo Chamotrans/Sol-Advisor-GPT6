@@ -1,5 +1,5 @@
 #!/bin/sh
-# Repository-local verification for Sol Advisor's selective native three-role architecture.
+# Repository-local verification for Sol Advisor's explicit generic native dispatch.
 
 set -eu
 
@@ -166,8 +166,8 @@ jq empty "$manifest"
 [ "$(jq -r '.version' "$manifest")" = 0.6.0 ] || fail "manifest version is not 0.6.0"
 grep -Fq 'SELECTIVE ROUTE' "$manifest" || fail "manifest omits route declaration"
 grep -Fq 'solo is the default' "$manifest" || fail "manifest omits solo default"
-grep -Fq 'delegate uses native GPT-5.6 Luna / Max' "$manifest" || fail "manifest omits delegate role contract"
-grep -Fq 'audit uses a fresh read-only GPT-5.6 Sol / High review' "$manifest" || fail "manifest omits audit contract"
+grep -Fq 'delegate uses native generic dispatch with explicit GPT-6 Luna / Max' "$manifest" || fail "manifest omits generic delegate contract"
+grep -Fq 'audit uses a fresh read-only GPT-6 Sol / High review' "$manifest" || fail "manifest omits audit contract"
 grep -Fq 'full combines one selected implementer' "$manifest" || fail "manifest omits exceptional full contract"
 grep -Fq 'fails closed' "$manifest" || fail "manifest omits fail-closed evidence rule"
 pass "manifest JSON, v0.6.0 release, and selective-routing language"
@@ -181,17 +181,17 @@ root = Path(sys.argv[1])
 expected = {
     "sol-advisor-luna-implementer.toml": {
         "name": "sol_advisor_luna_implementer",
-        "model": "gpt-5.6-luna",
+        "model": "gpt-6-luna",
         "model_reasoning_effort": "max",
     },
     "sol-advisor-terra-implementer.toml": {
         "name": "sol_advisor_terra_implementer",
-        "model": "gpt-5.6-terra",
+        "model": "gpt-6-sol",
         "model_reasoning_effort": "high",
     },
     "sol-advisor-sol-reviewer.toml": {
         "name": "sol_advisor_sol_reviewer",
-        "model": "gpt-5.6-sol",
+        "model": "gpt-6-sol",
         "model_reasoning_effort": "high",
         "sandbox_mode": "read-only",
     },
@@ -372,12 +372,12 @@ runtime_rollout=$runtime_day/rollout-2026-08-15T00-00-00-$runtime_id.jsonl
 printf '%s\n' \
   '{"type":"response_item","payload":{"prompt":"DO_NOT_LEAK_PROMPT"}}' \
   "{\"type\":\"session_meta\",\"payload\":{\"id\":\"$runtime_id\",\"parent_thread_id\":\"00000000-0000-7000-8000-000000000000\",\"agent_role\":\"sol_advisor_luna_implementer\",\"agent_path\":\"/root/fixture\",\"model_provider\":\"openai\",\"cwd\":\"/fixture\"}}" \
-  '{"type":"turn_context","payload":{"model":"gpt-5.6-luna","effort":"max","sandbox_policy":{"type":"danger-full-access"},"permission_profile":{"type":"disabled"},"cwd":"/fixture"}}' \
+  '{"type":"turn_context","payload":{"model":"gpt-6-luna","effort":"max","sandbox_policy":{"type":"danger-full-access"},"permission_profile":{"type":"disabled"},"cwd":"/fixture"}}' \
   > "$runtime_rollout"
 runtime_output=$(sh "$runtime_inspector" --sessions-dir "$runtime_sessions" "$runtime_id")
 printf '%s\n' "$runtime_output" | jq -e --arg id "$runtime_id" '
   .thread_id == $id and .agent_role == "sol_advisor_luna_implementer"
-  and .model == "gpt-5.6-luna" and .effort == "max"
+  and .model == "gpt-6-luna" and .effort == "max"
   and .sandbox_policy_type == "danger-full-access"
   and .permission_profile_type == "disabled"
 ' >/dev/null || fail "runtime inspector returned wrong Luna/Max evidence"
@@ -388,13 +388,28 @@ if sh "$runtime_inspector" --sessions-dir "$runtime_sessions" "$zero_id" >/dev/n
 pass "runtime inspector Luna/Max routing and safe refusal"
 
 for document in "$contracts" "$operations"; do
-  grep -Fq 'agent_type: sol_advisor_luna_implementer' "$document" || fail "missing Luna spawn in $document"
-  grep -Fq 'agent_type: sol_advisor_terra_implementer' "$document" || fail "missing Terra spawn in $document"
-  grep -Fq 'agent_type: sol_advisor_sol_reviewer' "$document" || fail "missing Sol spawn in $document"
+  grep -Fq 'agent_type: default' "$document" || fail "missing generic native spawn in $document"
+  grep -Fq 'model: gpt-6-luna' "$document" || fail "missing explicit Luna model in $document"
+  grep -Fq 'model: gpt-6-sol' "$document" || fail "missing explicit Sol model in $document"
+  grep -Fq 'reasoning_effort: max' "$document" || fail "missing Luna effort in $document"
+  grep -Fq 'reasoning_effort: high' "$document" || fail "missing Sol effort in $document"
   grep -Fq 'fork_turns: none' "$document" || fail "missing fresh context in $document"
-  if grep -Eq 'agent_type:.*terra_max' "$document"; then fail "retired Terra-Max spawn remains in $document"; fi
-  if grep -Eq '^[[:space:]]*(model|reasoning_effort):' "$document"; then fail "per-spawn override remains in $document"; fi
+  if grep -Eq 'agent_type: sol_advisor_|agent_type:.*terra_max' "$document"; then fail "named or retired spawn remains in $document"; fi
 done
+python3 - "$contracts" "$operations" <<'PY'
+from pathlib import Path
+import re
+import sys
+
+expected = {("gpt-6-luna", "max"), ("gpt-6-sol", "high")}
+pattern = re.compile(r"agent_type: default\nmodel: (gpt-[^\n]+)\nreasoning_effort: ([^\n]+)\nfork_turns: none")
+for name in sys.argv[1:]:
+    text = Path(name).read_text(encoding="utf-8")
+    found = pattern.findall(text)
+    if set(found) != expected or len(found) < 2:
+        raise SystemExit(f"{name}: generic dispatch examples drifted: {found}")
+print("generic dispatch examples pin only Luna/max and Sol/high")
+PY
 grep -Fq 'references/operations.md' "$skill" || fail "skill does not link operations reference"
 grep -Fq '../../scripts/install-agents.sh' "$operations" || fail "operations does not resolve installer relatively"
 grep -Fq '../../scripts/inspect-agent-runtime.sh' "$operations" || fail "operations does not resolve inspector relatively"
@@ -405,8 +420,10 @@ grep -Fq 'Solo is the default' "$skill" || fail "skill omits solo default"
 grep -Fq 'One auxiliary agent is the default maximum' "$skill" || fail "skill omits auxiliary limit"
 grep -Fq 'A later declaration may only escalate the route when newly' "$skill" || fail "skill omits escalation gate"
 grep -Fq 'never silently downgrade' "$skill" || fail "skill permits silent downgrade"
-grep -Fqi 'public metadata' "$skill" || fail "skill lacks public-metadata evidence rule"
+grep -Fqi 'public spawn metadata' "$skill" || fail "skill lacks public spawn evidence rule"
 grep -Fqi 'local inspector' "$skill" || fail "skill lacks runtime fallback rule"
+grep -Fq 'continue safe solo work' "$skill" || fail "skill blocks safe solo work on unobservable parent"
+grep -Fq 'agent_type: default' "$skill" || fail "skill omits default generic dispatch"
 grep -Fqi 'parent captures and verifies exact before-and-after' "$contracts" || fail "contracts lack behavioral read-only state check"
 for mode in solo delegate audit full; do
   grep -Fq "\`$mode\`" "$skill" || fail "skill omits $mode mode"
@@ -414,7 +431,7 @@ for mode in solo delegate audit full; do
 done
 grep -Fqi 'auxiliary work must substitute for root work' "$skill" || fail "skill permits duplicate auxiliary work"
 grep -Fqi 'auxiliary work substitutes for root work' "$contracts" || fail "contracts permit duplicate auxiliary work"
-grep -Fqi 'first Luna result' "$contracts" || fail "contracts omit Luna-to-Terra escalation"
+grep -Fqi 'first Luna result' "$contracts" || fail "contracts omit Luna-to-Sol 6 escalation"
 grep -Fqi 'not a prerequisite' "$contracts" || fail "contracts make corrected Luna mandatory"
 grep -Fq 'do not request a fresh review' "$skill" || fail "skill makes delegate review mandatory"
 grep -Fq '`solo` and `delegate` do not receive a fresh reviewer' "$skill" || fail "skill makes solo/delegate review mandatory"
@@ -424,12 +441,14 @@ if grep -Fq 'fix-first: delegate the required correction' "$skill"; then fail "s
 grep -Fq 'On `fix-first`, the root implements the' "$contracts" || fail "contracts do not assign audit corrections to root"
 grep -Fq 'On `fix-first`, the selected implementer handles the correction' "$contracts" || fail "contracts do not assign full corrections to selected implementer"
 if grep -Fqi 'commitment-boundary sol consult' "$contracts"; then fail "contracts retain an ungated commitment-boundary consult"; fi
-pass "native role contracts, selective route declaration, escalation, and correction checks"
+pass "generic native dispatch, selective route declaration, escalation, and correction checks"
 
 for phrase in \
-  'agent_type: sol_advisor_luna_implementer' \
-  'agent_type: sol_advisor_terra_implementer' \
-  'agent_type: sol_advisor_sol_reviewer' \
+  'agent_type: default' \
+  'model: gpt-6-luna' \
+  'model: gpt-6-sol' \
+  'reasoning_effort: max' \
+  'reasoning_effort: high' \
   'fork_turns: none' \
   'SELECTIVE ROUTE' \
   'solo | delegate | audit | full' \
@@ -445,7 +464,10 @@ pass "operations reference preserves selective native operational detail"
 
 readme_lines=$(wc -l < "$readme" | tr -d ' ')
 [ "$readme_lines" -le 110 ] || fail "README remains maintainer-sized ($readme_lines lines)"
-grep -Fq 'codex plugin marketplace add' "$readme" || fail "README omits marketplace quick start"
+grep -Fq 'codex plugin marketplace add Chamotrans/Sol-Advisor-GPT6 --ref main' "$readme" || fail "README omits public fork source"
+if grep -Fq 'marketplace add DannyMac180/sol-advisor' "$readme"; then
+  fail "README suggests replacing GPT-6 routing with upstream"
+fi
 grep -Fq 'codex plugin add' "$readme" || fail "README omits plugin quick start"
 grep -Fq 'scripts/install-agents.sh' "$readme" || fail "README omits companion install"
 if grep -Eq 'agent_type:|fork_turns:|inspect-agent-runtime|sandbox_policy|sandbox_mode' "$readme"; then
@@ -465,7 +487,7 @@ grep -Fq 'before the first task tool call' "$readme" || fail "README omits route
 grep -Fq 'newly observed' "$readme" || fail "README omits escalation gate"
 grep -Fq 'never silently downgrades' "$readme" || fail "README permits silent downgrade"
 grep -Fq 'need to select or manage a lane' "$readme" || fail "README asks users to manage lanes"
-grep -Fq 'Luna / Max or Terra / High access is needed only when' "$readme" || fail "README omits conditional delegate access"
+grep -Fq 'Luna / Max or Sol 6 / High access is needed only when' "$readme" || fail "README omits conditional delegate access"
 python3 - "$readme" <<'PY'
 from pathlib import Path
 import sys
@@ -524,9 +546,9 @@ for path in paths:
 print("obsolete workflow references are absent")
 PY
 
-grep -Fq 'Sol / High runs the show' "$readme" || fail "README omits primary ownership"
+grep -Fq 'Sol 6.1 / High runs the show' "$readme" || fail "README omits primary ownership"
 grep -Fq 'Luna / Max' "$readme" || fail "README omits Luna / Max delegate path"
-grep -Fq 'Terra / High' "$readme" || fail "README omits Terra delegate path"
+grep -Fq 'Sol 6 / High' "$readme" || fail "README omits Terra delegate path"
 grep -Fq 'Auxiliary work substitutes' "$readme" || fail "README omits substitution rule"
 grep -Fq 'Attention Heads' "$readme" || fail "README lost Attention Heads section"
 grep -Fq 'https://attentionheads.substack.com/?utm_source=github&utm_medium=readme&utm_campaign=sol-advisor' "$readme" || fail "README changed Attention Heads link"
@@ -534,7 +556,7 @@ grep -Fq 'https://attentionheads.substack.com/subscribe?utm_source=github&utm_me
 pass "README selective routing and preserved Go deeper links"
 
 for document in "$readme" "$manifest" "$skill" "$contracts" "$ui"; do
-  if grep -Eqi 'Terra / High is the sole implementation producer|one role-pinned .*handles all implementation|route all implementation through.*Terra|delegate all implementation to (the )?(native )?Terra' "$document"; then
+  if grep -Eqi 'Sol 6 / High is the sole implementation producer|one role-pinned .*handles all implementation|route all implementation through.*Terra|delegate all implementation to (the )?(native )?Terra' "$document"; then
     fail "stale single-mode implementation claim remains in $document"
   fi
 done

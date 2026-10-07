@@ -1,8 +1,8 @@
-# Native Codex role contracts
+# Native Codex agent contracts
 
-Use these contracts with Sol Advisor's namespaced, role-pinned native custom agents.
-They do not launch a nested Codex CLI or change global default-agent routing. Adapt
-every placeholder without removing a required field.
+Use these contracts with generic native agents dispatched with explicit model and
+reasoning effort. They do not launch a nested Codex CLI or change the primary session.
+Adapt every placeholder without removing a required field.
 
 For task-scoped preflight, runtime evidence, sandbox interpretation, and maintainer
 commands, use [operations.md](operations.md).
@@ -21,26 +21,31 @@ Solo is the default; one auxiliary is the default maximum. Full is an explicit b
 or high-risk exception. A later route declaration may only escalate after newly
 observed risk justifies it and supplies that evidence; never silently downgrade.
 
-Confirm Sol / High in the primary session, then preflight only auxiliaries selected by
-the route: none for solo; Luna / Max or Terra / High for delegate; fresh Sol / High
-for audit; and one selected implementer plus fresh Sol reviewer for full. Cache each
+Check observable primary metadata. A mismatch stops delegation; if it is unobservable,
+disclose that and continue safe solo work without claiming confirmation. Preflight only
+auxiliaries selected by the route: none for solo; Luna / Max or Sol 6 / High for
+delegate; fresh Sol 6 / High for audit; and one selected implementer plus fresh Sol 6
+reviewer for full. Cache each
 successful check only for the task. After spawning, complete the selected role's
 routing and reviewer-isolation checks before accepting the result:
 
-1. Require the selected exact native role and fresh-context spawn contract.
-2. Observe the selected role, model, and effort through public spawn/details metadata
-   first, using the local runtime inspector only for omitted fields. Accept Luna /
-   Max for bounded delegate/full implementation, Terra / High for higher-risk
-   delegate/full implementation, and Sol / High for audit/full review.
+1. Require `agent_type: default`, the selected explicit model and effort, and a fresh
+   context in the supported generic native spawn contract.
+2. Observe model and effort through public spawn/details metadata first, using the
+   local runtime inspector only for omitted runtime fields. Accept Luna /
+   Max for bounded delegate/full implementation, Sol 6 / High for higher-risk
+   delegate/full implementation, and Sol 6 / High for audit/full review.
 3. For the reviewer, capture actual sandbox policy and permission profile types.
 
 A missing, stale, unsafe, conflicting, unavailable, inconsistent, or unobservable
-role/model/effort stops the native lane. Never silently fall back. Model and effort
-are pinned by custom-agent TOML, so omit native per-spawn overrides.
+auxiliary model/effort stops the native lane. Never silently substitute an older model.
+Named TOML roles are optional compatibility only, and contradictory public role
+metadata overrides their local pins. The generic dispatch must include both native
+per-spawn model and reasoning fields.
 
 ## Shared implementation contract
 
-Every Luna or Terra prompt must contain all five sections:
+Every Luna 6 or Sol 6 prompt must contain all five sections:
 
 ~~~text
 OBJECTIVE
@@ -83,14 +88,14 @@ The primary session must inspect the diff and rerun verification itself.
 ## Exact mode contracts
 
 - `solo`: root plans, implements, tests, and self-reviews. Spawn no auxiliary.
-- `delegate`: one selected Luna / Max or Terra / High implementer executes the complete
+- `delegate`: one selected Luna / Max or Sol 6 / High implementer executes the complete
   five-part specification. The root verifies. Do not spawn a fresh reviewer.
-- `audit`: root implements and verifies. A fresh read-only Sol / High reviewer inspects
+- `audit`: root implements and verifies. A fresh read-only Sol 6 / High reviewer inspects
   the accumulated diff. Spawn no implementer. On `fix-first`, the root implements the
   correction, re-verifies, and obtains a new fresh reviewer.
 - `full`: use only for an explicit broad or high-risk exception. One selected Luna /
-  Max or Terra / High implementer executes the complete specification, the root
-  verifies, and a fresh read-only Sol / High reviewer inspects the accumulated diff.
+  Max or Sol 6 / High implementer executes the complete specification, the root
+  verifies, and a fresh read-only Sol 6 / High reviewer inspects the accumulated diff.
   On `fix-first`, the selected implementer handles the correction, the root
   re-verifies, and a new fresh reviewer inspects the result.
 
@@ -102,21 +107,23 @@ observed, risk-evidenced route escalation is declared; never silently add one.
 ## Luna / Max - bounded delegate/full implementation lane
 
 Use this lane only when a declared delegate or full route selects it for bounded,
-fully specified work. The installed role pins GPT-5.6 Luna at max reasoning. It must
+fully specified work. Explicit dispatch selects GPT-6 Luna at max reasoning. It must
 surface ambiguity and failed checks rather than redesigning the architecture. A first
 result that demonstrates newly observed judgment-heavy, high-risk, wide-blast-radius,
-or misclassified work may justify a declared Terra escalation; do not force a retry
+or misclassified work may justify a declared Sol 6 escalation; do not force a retry
 first. If the specification itself was incomplete or wrong, return a precise
-correction for one corrected Luna attempt. That retry is not a prerequisite for Terra.
+correction for one corrected Luna attempt. That retry is not a prerequisite for Sol 6.
 
 Spawn exactly:
 
 ~~~text
-agent_type: sol_advisor_luna_implementer
+agent_type: default
+model: gpt-6-luna
+reasoning_effort: max
 fork_turns: none
 ~~~
 
-Do not attach per-spawn model or reasoning fields. Prompt:
+Prompt:
 
 ~~~text
 ROLE
@@ -127,22 +134,24 @@ constraint, and surface ambiguity instead of redesigning the architecture.
 <paste and complete the Shared implementation contract>
 ~~~
 
-## Terra / High - higher-risk delegate/full implementation lane
+## Sol 6 / High - higher-risk delegate/full implementation lane
 
 Use this lane only when a declared delegate or full route selects judgment-heavy,
 high-risk, context-heavy, or wide-blast-radius work, including risk revealed by a
-first Luna result. The installed role pins GPT-5.6 Terra at high reasoning. A
+first Luna result. Explicit dispatch selects GPT-6 Sol at high reasoning. A
 corrected Luna attempt is reserved for a specification error and is not a prerequisite
-for Terra.
+for Sol 6.
 
 Spawn exactly:
 
 ~~~text
-agent_type: sol_advisor_terra_implementer
+agent_type: default
+model: gpt-6-sol
+reasoning_effort: high
 fork_turns: none
 ~~~
 
-Do not attach per-spawn model or reasoning fields. Prompt:
+Prompt:
 
 ~~~text
 ROLE
@@ -153,18 +162,20 @@ constraint, and surface ambiguity instead of redesigning the architecture.
 <paste and complete the Shared implementation contract>
 ~~~
 
-## Fresh Sol / High - requested-read-only audit/full reviewer
+## Fresh Sol 6 / High - requested-read-only audit/full reviewer
 
 Only for an audit or full route, after parent verification, spawn a new native thread
 exactly:
 
 ~~~text
-agent_type: sol_advisor_sol_reviewer
+agent_type: default
+model: gpt-6-sol
+reasoning_effort: high
 fork_turns: none
 ~~~
 
-The installed role pins Sol / High and requests a read-only sandbox. Do not attach
-per-spawn model or reasoning fields. Observe the actual role, pin, sandbox policy, and
+The prompt requires read-only behavior. Generic dispatch may inherit a broader host
+sandbox. Observe the actual model, effort, sandbox policy, and
 permission profile before accepting its verdict.
 
 Prompt:

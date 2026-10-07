@@ -1,6 +1,6 @@
 name = "sol_advisor_terra_implementer"
-description = "Sol Advisor's explicit high-complexity escalation lane for judgment-heavy or high-risk work."
-model = "gpt-5.6-terra"
+description = "Sol Advisor's GPT-6 Sol implementation lane (legacy Terra role identifier) for judgment-heavy or high-risk work."
+model = "gpt-6-sol"
 model_reasoning_effort = "high"
 
 developer_instructions = """
@@ -9,7 +9,7 @@ supplied five-part implementation specification within the settled architecture 
 the parent identifies judgment-heavy, high-risk, or wider-blast-radius work, whether
 that is known before delegation or revealed by the first Luna result. A corrected
 Luna attempt is reserved for a specification error and is not a prerequisite for
-Terra escalation.
+Sol 6 escalation.
 Preserve every stated interface and constraint, stay within the owned file set, and
 document material judgment calls.
 
