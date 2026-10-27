@@ -20,8 +20,8 @@ continue using their local source.
 
 You need a current Codex CLI or ChatGPT desktop app with plugins enabled, GPT-6.1
 Sol / High for the primary session, native generic agent dispatch, and jq. GPT-6
-Luna / Max or Sol 6 / High access is needed only when the selected route delegates
-or audits.
+Luna / Max, Terra 6.1, or Sol 6 / High access is needed only when the selected route
+uses that model. Terra is an additional scoped implementer; Sol 6 remains the reviewer.
 
 ~~~sh
 codex plugin marketplace add Chamotrans/Sol-Advisor-GPT6 --ref main
@@ -52,9 +52,12 @@ acceptance.
 | Mode | Use it when | Delivery |
 |---|---|---|
 | `solo` | Default; risk is contained. | Root plans, implements, tests, and self-reviews. |
-| `delegate` | A complete spec is better executed by one implementer. | Luna / Max for bounded work, or Sol 6 / High for judgment-heavy or high-risk work; root verifies. |
+| `delegate` | A complete spec is better executed by one implementer. | Luna / Max for bounded work, Terra 6.1 for scoped code, visual, computer-use, or writing work, or Sol 6 / High for higher-risk work; root verifies. |
 | `audit` | Independent final scrutiny matters more than delegation. | Root implements; a fresh read-only Sol 6 / High reviews. |
 | `full` | Explicit broad or high-risk exception. | One selected implementer, root verification, and a fresh Sol 6 / High review. |
+
+Terra 6.1 uses the exact model ID `gpt-6.1-terra` and an explicit effort supported
+by the live Codex tool. No additional companion agent is required.
 
 Solo is the default. One auxiliary is the default maximum; `full` is the explicit
 exception. Sol emits a `SELECTIVE ROUTE` declaration with the mode and concise risk

@@ -163,14 +163,14 @@ test ! -e "$retired_contract" || fail "retired separate workflow contract remain
 pass "required files present and retired contract absent"
 
 jq empty "$manifest"
-[ "$(jq -r '.version' "$manifest")" = 0.6.0 ] || fail "manifest version is not 0.6.0"
+[ "$(jq -r '.version' "$manifest")" = 0.6.1 ] || fail "manifest version is not 0.6.1"
 grep -Fq 'SELECTIVE ROUTE' "$manifest" || fail "manifest omits route declaration"
 grep -Fq 'solo is the default' "$manifest" || fail "manifest omits solo default"
 grep -Fq 'delegate uses native generic dispatch with explicit GPT-6 Luna / Max' "$manifest" || fail "manifest omits generic delegate contract"
 grep -Fq 'audit uses a fresh read-only GPT-6 Sol / High review' "$manifest" || fail "manifest omits audit contract"
 grep -Fq 'full combines one selected implementer' "$manifest" || fail "manifest omits exceptional full contract"
 grep -Fq 'fails closed' "$manifest" || fail "manifest omits fail-closed evidence rule"
-pass "manifest JSON, v0.6.0 release, and selective-routing language"
+pass "manifest JSON, v0.6.1 release, and selective-routing language"
 
 python3 - "$templates" <<'PY'
 from pathlib import Path
@@ -387,10 +387,31 @@ zero_id=22222222-2222-7222-8222-222222222222
 if sh "$runtime_inspector" --sessions-dir "$runtime_sessions" "$zero_id" >/dev/null 2>&1; then fail "runtime inspector accepted zero matches"; fi
 pass "runtime inspector Luna/Max routing and safe refusal"
 
+# Generic Terra dispatch must retain the actual model and effort, not map the
+# Terra name to the older Sol-pinned compatibility profile.
+terra_runtime_id=33333333-3333-7333-8333-333333333333
+terra_runtime_rollout=$runtime_day/rollout-2026-10-27T00-00-00-$terra_runtime_id.jsonl
+for terra_effort in low medium high xhigh max ultra; do
+  printf '%s\n' \
+    "{\"type\":\"session_meta\",\"payload\":{\"id\":\"$terra_runtime_id\",\"agent_role\":\"default\"}}" \
+    "{\"type\":\"turn_context\",\"payload\":{\"model\":\"gpt-6.1-terra\",\"effort\":\"$terra_effort\",\"sandbox_policy\":{\"type\":\"danger-full-access\"},\"permission_profile\":{\"type\":\"disabled\"},\"cwd\":\"/fixture\"}}" \
+    > "$terra_runtime_rollout"
+  terra_output=$(sh "$runtime_inspector" --sessions-dir "$runtime_sessions" "$terra_runtime_id")
+  printf '%s\n' "$terra_output" | jq -e --arg effort "$terra_effort" '
+    .agent_role == "default" and .model == "gpt-6.1-terra" and .effort == $effort
+  ' >/dev/null || fail "runtime inspector changed generic Terra evidence"
+done
+printf '%s\n' '{"type":"turn_context","payload":{"model":"gpt-6-sol","effort":"ultra","sandbox_policy":{"type":"danger-full-access"},"permission_profile":{"type":"disabled"},"cwd":"/fixture"}}' >> "$terra_runtime_rollout"
+if sh "$runtime_inspector" --sessions-dir "$runtime_sessions" "$terra_runtime_id" >/dev/null 2>&1; then
+  fail "runtime inspector accepted conflicting Terra/Sol models"
+fi
+pass "generic Terra 6.1 effort evidence and conflicting-model refusal"
+
 for document in "$contracts" "$operations"; do
   grep -Fq 'agent_type: default' "$document" || fail "missing generic native spawn in $document"
   grep -Fq 'model: gpt-6-luna' "$document" || fail "missing explicit Luna model in $document"
   grep -Fq 'model: gpt-6-sol' "$document" || fail "missing explicit Sol model in $document"
+  grep -Fq 'model: gpt-6.1-terra' "$document" || fail "missing explicit Terra 6.1 model in $document"
   grep -Fq 'reasoning_effort: max' "$document" || fail "missing Luna effort in $document"
   grep -Fq 'reasoning_effort: high' "$document" || fail "missing Sol effort in $document"
   grep -Fq 'fork_turns: none' "$document" || fail "missing fresh context in $document"
@@ -401,14 +422,14 @@ from pathlib import Path
 import re
 import sys
 
-expected = {("gpt-6-luna", "max"), ("gpt-6-sol", "high")}
+expected = {("gpt-6-luna", "max"), ("gpt-6-sol", "high"), ("gpt-6.1-terra", "high")}
 pattern = re.compile(r"agent_type: default\nmodel: (gpt-[^\n]+)\nreasoning_effort: ([^\n]+)\nfork_turns: none")
 for name in sys.argv[1:]:
     text = Path(name).read_text(encoding="utf-8")
     found = pattern.findall(text)
     if set(found) != expected or len(found) < 2:
         raise SystemExit(f"{name}: generic dispatch examples drifted: {found}")
-print("generic dispatch examples pin only Luna/max and Sol/high")
+print("generic dispatch examples cover Luna/max, Sol/high, and Terra 6.1/high")
 PY
 grep -Fq 'references/operations.md' "$skill" || fail "skill does not link operations reference"
 grep -Fq '../../scripts/install-agents.sh' "$operations" || fail "operations does not resolve installer relatively"
@@ -487,7 +508,7 @@ grep -Fq 'before the first task tool call' "$readme" || fail "README omits route
 grep -Fq 'newly observed' "$readme" || fail "README omits escalation gate"
 grep -Fq 'never silently downgrades' "$readme" || fail "README permits silent downgrade"
 grep -Fq 'need to select or manage a lane' "$readme" || fail "README asks users to manage lanes"
-grep -Fq 'Luna / Max or Sol 6 / High access is needed only when' "$readme" || fail "README omits conditional delegate access"
+grep -Fq 'access is needed only when the selected route' "$readme" || fail "README omits conditional delegate access"
 python3 - "$readme" <<'PY'
 from pathlib import Path
 import sys
@@ -570,4 +591,4 @@ sh -n "$runtime_inspector"
 sh -n "$script_dir/verify.sh"
 pass "shell syntax"
 
-printf '%s\n' "VERIFY PASSED: Sol Advisor v0.6.0 selective routing checks completed in $tmp_dir"
+printf '%s\n' "VERIFY PASSED: Sol Advisor v0.6.1 selective routing checks completed in $tmp_dir"

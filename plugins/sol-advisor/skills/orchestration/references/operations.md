@@ -6,8 +6,9 @@ inspecting routing, or validating a release.
 
 ## Default native dispatch contract
 
-The parent is `gpt-6.1-sol` / High; auxiliaries are only `gpt-6-sol` and
-`gpt-6-luna`. Use the currently exposed generic `collaboration.spawn_agent` contract.
+The parent is `gpt-6.1-sol` / High; implementers are `gpt-6-luna`, `gpt-6.1-terra`,
+or `gpt-6-sol`. Audit/full reviewers remain `gpt-6-sol` / High.
+Use the currently exposed generic `collaboration.spawn_agent` contract.
 For bounded implementation, pass these explicit fields:
 
 ~~~text
@@ -16,6 +17,22 @@ model: gpt-6-luna
 reasoning_effort: max
 fork_turns: none
 ~~~
+
+For scoped code fixes, visual reasoning, computer use, or writing from supplied
+material, Terra 6.1 is another implementer choice. For example:
+
+~~~text
+agent_type: default
+model: gpt-6.1-terra
+reasoning_effort: high
+fork_turns: none
+~~~
+
+The 2026-10-27 Codex native-tool snapshot exposes `low`, `medium`, `high`, `xhigh`,
+`max`, and `ultra` for `gpt-6.1-terra`. Select an explicit effort supported by the
+current tool; the example does not impose High. The
+[API model page](https://developers.openai.com/api/docs/models/gpt-6.1-terra)
+has a different effort set and must not override the Codex dispatch schema.
 
 For judgment-heavy implementation or a fresh audit/full reviewer, pass:
 
@@ -38,7 +55,8 @@ Installed TOMLs preserve these profiles for compatible native hosts:
 
 The identifier `sol_advisor_terra_implementer` and `--check-role terra` are retained
 only for compatibility with existing native role discovery. This role runs
-`gpt-6-sol` / High; the identifier does not authorize any Terra model.
+`gpt-6-sol` / High; it does not select `gpt-6.1-terra`. Invoke Terra 6.1 through
+generic dispatch with its exact model ID; no new companion profile is required.
 
 | Role type | Model | Effort | Use |
 |---|---|---|---|
@@ -119,7 +137,8 @@ check ignores unselected role destinations, while the all-role --check behavior
 remains unchanged. Cache successful checks only for the task; never carry them across
 later tasks, installation/update, or routing/configuration changes.
 
-Luna / Max is for bounded, fully specified work. Sol 6 / High is selected for
+Luna / Max is for bounded, fully specified work. Terra 6.1 is an optional scoped
+implementer with a live-supported effort. Sol 6 / High is selected for
 judgment-heavy, high-risk, context-heavy, or wide-blast-radius work. A Luna result
 may justify a declared Sol 6 escalation only when it shows newly observed risk. One
 corrected Luna attempt is reserved for a specification error and is not a prerequisite
@@ -153,7 +172,8 @@ conflicting model/effort/sandbox/permission/working-directory values. It never p
 prompts, messages, environment variables, tokens, configuration, or arbitrary rollout
 payloads.
 
-Accepted routing is Luna / max for bounded delegate/full implementation, Sol 6 / high
+Accepted routing is Luna / max or Terra 6.1 / a selected live-supported effort for
+bounded delegate/full implementation, Sol 6 / high
 for higher-risk delegate/full implementation, and Sol 6 / high for audit/full review.
 If public and local evidence both exist, they must agree. The local inspector is not a
 model-selection fallback.
@@ -176,7 +196,7 @@ verdict; parent verification and a new fresh review are required.
 
 ## Worker packet and parent acceptance
 
-Every Luna 6 or Sol 6 prompt uses the five-part packet in role-contracts.md:
+Every Luna 6, Terra 6.1, or Sol 6 prompt uses the five-part packet in role-contracts.md:
 
 - OBJECTIVE
 - FILES AND OWNERSHIP
@@ -189,7 +209,7 @@ complete diff inspection, verification reruns, correction/escalation decisions, 
 acceptance. Worker claims never replace direct inspection.
 
 In solo, the root plans, implements, tests, and self-reviews with no auxiliary. In
-delegate, one selected Luna 6 or Sol 6 implementer completes the spec and the root
+delegate, one selected Luna 6, Terra 6.1, or Sol 6 implementer completes the spec and the root
 verifies with no fresh reviewer. In audit, the root implements and verifies, then a
 fresh Sol 6 reviewer reviews. In full, one selected implementer completes the spec, the
 root verifies, and a fresh Sol 6 reviewer reviews. Auxiliary work substitutes for root
@@ -206,6 +226,6 @@ git status --short
 git diff --stat
 ~~~
 
-The verifier covers the v0.6.0 manifest, exact three-role TOMLs, selective-routing
+The verifier covers the v0.6.1 manifest, exact three-role TOMLs, selective-routing
 contracts, concise README journey, absence of retired workflow references, installer
-safety fixtures, Luna runtime evidence, JSON/TOML validity, and shell syntax.
+safety fixtures, Luna and generic Terra runtime evidence, JSON/TOML validity, and shell syntax.

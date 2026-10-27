@@ -23,7 +23,8 @@ observed risk justifies it and supplies that evidence; never silently downgrade.
 
 Check observable primary metadata. A mismatch stops delegation; if it is unobservable,
 disclose that and continue safe solo work without claiming confirmation. Preflight only
-auxiliaries selected by the route: none for solo; Luna / Max or Sol 6 / High for
+auxiliaries selected by the route: none for solo; Luna / Max, Terra 6.1 at a selected
+live-supported effort, or Sol 6 / High for
 delegate; fresh Sol 6 / High for audit; and one selected implementer plus fresh Sol 6
 reviewer for full. Cache each
 successful check only for the task. After spawning, complete the selected role's
@@ -33,7 +34,8 @@ routing and reviewer-isolation checks before accepting the result:
    context in the supported generic native spawn contract.
 2. Observe model and effort through public spawn/details metadata first, using the
    local runtime inspector only for omitted runtime fields. Accept Luna /
-   Max for bounded delegate/full implementation, Sol 6 / High for higher-risk
+   Max or Terra 6.1 at the selected live-supported effort for bounded delegate/full
+   implementation, Sol 6 / High for higher-risk
    delegate/full implementation, and Sol 6 / High for audit/full review.
 3. For the reviewer, capture actual sandbox policy and permission profile types.
 
@@ -45,7 +47,7 @@ per-spawn model and reasoning fields.
 
 ## Shared implementation contract
 
-Every Luna 6 or Sol 6 prompt must contain all five sections:
+Every Luna 6, Terra 6.1, or Sol 6 prompt must contain all five sections:
 
 ~~~text
 OBJECTIVE
@@ -88,13 +90,13 @@ The primary session must inspect the diff and rerun verification itself.
 ## Exact mode contracts
 
 - `solo`: root plans, implements, tests, and self-reviews. Spawn no auxiliary.
-- `delegate`: one selected Luna / Max or Sol 6 / High implementer executes the complete
+- `delegate`: one selected Luna / Max, Terra 6.1, or Sol 6 / High implementer executes the complete
   five-part specification. The root verifies. Do not spawn a fresh reviewer.
 - `audit`: root implements and verifies. A fresh read-only Sol 6 / High reviewer inspects
   the accumulated diff. Spawn no implementer. On `fix-first`, the root implements the
   correction, re-verifies, and obtains a new fresh reviewer.
 - `full`: use only for an explicit broad or high-risk exception. One selected Luna /
-  Max or Sol 6 / High implementer executes the complete specification, the root
+  Max, Terra 6.1, or Sol 6 / High implementer executes the complete specification, the root
   verifies, and a fresh read-only Sol 6 / High reviewer inspects the accumulated diff.
   On `fix-first`, the selected implementer handles the correction, the root
   re-verifies, and a new fresh reviewer inspects the result.
@@ -133,6 +135,25 @@ constraint, and surface ambiguity instead of redesigning the architecture.
 
 <paste and complete the Shared implementation contract>
 ~~~
+
+## Terra 6.1 - scoped delegate/full implementation
+
+Select `gpt-6.1-terra` for scoped code fixes, visual reasoning, computer use, or
+writing with supplied source material and clear acceptance checks. Pass an explicit
+effort from the live Codex schema; High is an example, not a required default.
+The current snapshot and API/Codex distinction are in operations.md.
+
+~~~text
+agent_type: default
+model: gpt-6.1-terra
+reasoning_effort: high
+fork_turns: none
+~~~
+
+Use the Shared implementation contract, preserving file ownership and parent
+verification. If the result exposes broader risk, declare escalation to Sol 6 / High.
+The existing Terra-named compatibility role remains pinned to `gpt-6-sol`; do not
+use that role for this model. Audit/full review remains with Sol 6 / High.
 
 ## Sol 6 / High - higher-risk delegate/full implementation lane
 

@@ -11,9 +11,10 @@ acceptance. Selective routing has four exact modes: `solo`, `delegate`, `audit`,
 `full`. Solo is the default. One auxiliary agent is the default maximum; full is an
 explicit broad or high-risk exception.
 
-The primary model is `gpt-6.1-sol`; delegate and reviewer models are limited to
-`gpt-6-sol` and `gpt-6-luna`. Live tools may narrow this set, but must not silently
-expand it to older or unlisted models.
+The primary model is `gpt-6.1-sol`. Delegate models are `gpt-6-luna`,
+`gpt-6.1-terra`, and `gpt-6-sol`; audit/full review remains `gpt-6-sol` / High.
+Live tools may narrow this set, but must not silently expand it to older or
+unlisted models.
 
 Read [references/role-contracts.md](references/role-contracts.md) before the first
 delegation. Use [references/operations.md](references/operations.md) for exact spawn,
@@ -45,7 +46,8 @@ escalation. Details and the task-scoped preflight matrix are in operations.md.
 ## Preflight selected auxiliaries only
 
 Check the observable primary model and effort first. Preflight only an auxiliary selected
-by the declared route: none for solo; Luna / Max or Sol 6 / High for delegate; fresh
+by the declared route: none for solo; Luna / Max, Terra 6.1 at a selected live-supported
+effort, or Sol 6 / High for delegate; fresh
 Sol 6 / High for audit; and the selected implementer plus fresh Sol 6 reviewer for full.
 The default native dispatch uses `agent_type: default`, explicit `model` and
 `reasoning_effort`, and `fork_turns: none`. Public spawn metadata is authoritative;
@@ -60,6 +62,9 @@ compatibility with named roles exposed by a matching public schema.
 - `delegate`: select Luna / Max for bounded, fully specified work, or Sol 6 / High for
   judgment-heavy, high-risk, context-heavy, or wide-blast-radius work. The selected
   implementer executes the complete spec; root verifies; do not request a fresh review.
+  Terra 6.1 is an additional choice for scoped code fixes, visual reasoning,
+  computer use, or writing from supplied material. Select its effort from the live
+  Codex schema; High is the example in the role contract, not a mandatory setting.
 - `audit`: root implements and verifies; a fresh read-only Sol 6 / High reviewer reviews
   the accumulated diff; spawn no implementer.
 - `full`: only for an explicit broad or high-risk exception. Select one implementer,
@@ -68,7 +73,8 @@ compatibility with named roles exposed by a matching public schema.
 Auxiliary work must substitute for root work, not duplicate it. A Luna result may
 justify escalation to Sol 6 / High only when it reveals newly observed complexity,
 risk, wide blast radius, or misclassification. A corrected Luna attempt is reserved
-for a specification error and is not a prerequisite for Sol 6. Any route change must
+for a specification error and is not a prerequisite for Sol 6. The same risk-based
+escalation applies when Terra 6.1 was selected. Any route change must
 be declared and evidenced; do not silently downgrade.
 
 ## Keep architect work in the primary session

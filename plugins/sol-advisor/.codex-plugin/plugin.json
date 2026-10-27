@@ -1,6 +1,6 @@
 {
   "name": "sol-advisor",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "Codex-native selective routing: Sol 6.1 / High declares solo, delegate, audit, or exceptional full delivery before work begins.",
   "author": {
     "name": "Daniel McAteer",
@@ -19,7 +19,7 @@
   "interface": {
     "displayName": "Sol Advisor",
     "shortDescription": "Plan with Sol 6.1 / High, declare a risk-gated route, and use at most one auxiliary by default.",
-    "longDescription": "Sol Advisor keeps GPT-6.1 Sol / High in the primary session for architecture, implementation when solo or audit is selected, verification, and acceptance. Before the first task tool call, Sol declares a machine-auditable SELECTIVE ROUTE: solo is the default; delegate uses native generic dispatch with explicit GPT-6 Luna / Max for bounded work or GPT-6 Sol / High for higher-risk work; audit uses a fresh read-only GPT-6 Sol / High review; full combines one selected implementer with a fresh review only for a broad or high-risk exception. Public spawn model and effort metadata is authoritative and conflicting, unavailable, or unobservable auxiliary routing evidence fails closed.",
+    "longDescription": "Sol Advisor keeps GPT-6.1 Sol / High in the primary session for architecture, implementation when solo or audit is selected, verification, and acceptance. Before the first task tool call, Sol declares a machine-auditable SELECTIVE ROUTE: solo is the default; delegate uses native generic dispatch with explicit GPT-6 Luna / Max for bounded work, GPT-6.1 Terra (gpt-6.1-terra) at a live-supported effort for scoped code, visual, computer-use, or writing work, or GPT-6 Sol / High for higher-risk work; audit uses a fresh read-only GPT-6 Sol / High review; full combines one selected implementer with a fresh review only for a broad or high-risk exception. Public spawn model and effort metadata is authoritative and conflicting, unavailable, or unobservable auxiliary routing evidence fails closed.",
     "developerName": "Daniel McAteer",
     "category": "Productivity",
     "capabilities": [
