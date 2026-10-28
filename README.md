@@ -1,5 +1,7 @@
 # Sol Advisor
 
+[English](README.md) | [繁體中文（香港）](README.zh-HK.md) | [简体中文](README.zh-CN.md)
+
 **Sol 6.1 / High runs the show. It declares a risk-gated route before task tools, keeps
 solo as the default, and uses a single auxiliary only when that improves delivery.**
 
@@ -85,3 +87,12 @@ plugin_dir="$(codex plugin list --json | jq -r '.installed[] | select(.pluginId 
 
 For exact spawn, runtime-evidence, sandbox, installer, and maintainer verification
 details, read [advanced native operations](plugins/sol-advisor/skills/orchestration/references/operations.md).
+
+## Privacy and contributions
+
+Use a public handle and your GitHub-provided noreply email for commits. Before
+sharing a patch, issue, screenshot, or log, remove personal paths, contact details,
+client material, credentials, and session transcripts. Examples must use synthetic
+data. The ignore rules help prevent accidental additions; they do not sanitize
+tracked files or Git history. Public project attribution and the MIT copyright
+notice are retained. See [LICENSE](LICENSE).

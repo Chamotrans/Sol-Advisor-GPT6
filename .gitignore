@@ -1,3 +1,19 @@
 .DS_Store
 *.log
 __pycache__/
+
+# Local credentials, sessions, and private working material
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+auth.json
+credentials.json
+/.codex/
+/.codex-marketplace-install.json
+/.agenttrail/
+/sessions/
+/rollouts/
+/logs/
+/private/
